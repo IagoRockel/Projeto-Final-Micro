@@ -26,8 +26,11 @@
 // Número de compartimentos para remédios
 #define NUM_REMEDIOS 6
 
-uint32_t periodo = (50e6/16) / 50; // Frequência de 50 Hz
-uint32_t teste; 
+#define HORA 3600
+#define MINUTO 60
+#define SEGUNDO 1
+#define DEZENA 10
+#define UNIDADE 1
 
 /********************************************************************************
  *
@@ -47,7 +50,7 @@ __error__(char *pcFilename, uint32_t ui32Line)
  * Variáveis globais do projeto
  *
  ********************************************************************************/
-volatile uint8_t segundos = 0, minutos = 0, horas = 0, tam = 0;
+uint8_t tempo = 0;
 
 typedef struct tipo_remedio {
     int posicao; // compartimento em que o remédio será alocado
@@ -76,27 +79,11 @@ void delay_ms(uint16_t atraso) {
  *
  ********************************************************************************/
 void Interrupcao_Timer0() {
-    TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT); // limpa a interrupção
+    // Limpa a interrupção
+    TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
 
-    // incrementa os segundos do relógio
-    segundos++;
-
-    // incrementa os minutos do relógio e reseta os segundos
-    if (segundos >= 60) {
-        minutos++;
-        segundos = 0;
-    }
-
-    // incrementa as horas do relógio
-    if (minutos >= 60) {
-        horas++;
-        minutos = 0;
-    }
-
-
-    if (horas >= 24) {
-        horas = 0;
-    }
+    // Incrementa a variável dos segundos 24h = 86400s
+    tempo = (tempo + 1) % 86400;
 }
 
 /********************************************************************************
@@ -117,7 +104,7 @@ void LCD_Setup() {
  *
  ********************************************************************************/
 void Teclado_Setup() {
-	// Configura os periféricos C e D
+    // Configura os periféricos C e D
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
 
@@ -134,10 +121,10 @@ void Teclado_Setup() {
  *
  ********************************************************************************/
 void Menu() {
-	// Variável para armazenar a opção escolhida pelo usuário
+    // Variável para armazenar a opção escolhida pelo usuário
     int opc;
 
-	// Configura as teclas do teclado matricial
+    // Configura as teclas do teclado matricial
     PinDefinition KeypadColumns[4], KeypadRows[4];
 
     KeypadColumns[0].ui32Port = GPIO_PORTC_BASE;
@@ -174,7 +161,7 @@ void Menu() {
     // Atribuição para verificação
     opc = -1; 
     while(opc < 0) {
-    	// Le a tecla que foi clicada
+        // Le a tecla que foi clicada
         opc = Keypad_Key_Click();
         delay_ms(5);
 
@@ -189,11 +176,11 @@ void Menu() {
     Lcd_Cmd(_LCD_CLEAR);
 
     if(opc == 1) {
-    	// Chama a função para adicionar um remédio
+        // Chama a função para adicionar um remédio
         Adiciona_Remedio();
     }
     else if (opc == 2) {
-    	// Chama a função para remover um remédio
+        // Chama a função para remover um remédio
         Remove_Remedio();
     }
 }
@@ -241,120 +228,63 @@ void Configura_hora() {
     // Desabilita a interrupção do timer
     TimerIntDisable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
 
-    // Limpa o LDC
+    // Limpa o LCD
     Lcd_Cmd(_LCD_CLEAR);
     Lcd_Cmd(_LCD_CURSOR_OFF);
 
-    // Pergunta a hora
-    UARTprintf("Digite a hora \r\n");
+    // Pergunta as horas
     Lcd_Out(1, 1, "Digite a hora: ");
 
-    // Atribuição para verificação
-    teclado = -1;
-    while(teclado < 0) {
-    	// Le a tecla que foi clicada
-        teclado = Keypad_Key_Click();
+    // Configura a dezena da hora
+    setTime(HORA, DEZENA, 2);
 
-        // Algarismo da dezena deve ser <= 2
-        if(teclado > 2)
-            teclado = -1;
-    }
-
-    // Escreve a dezena da hora no LCD
-    sprintf(str, "%d", teclado);
+    // Escreve a dezena das horas no LCD
+    sprintf(str, "%d", getTime(HORA, DEZENA));
     Lcd_Out(2, 1, str);
-    UARTprintf("%d", teclado);
 
-    // Salva a dezena da hora na variável
-    horas = teclado * 10;
     delay_ms(300);
 
-    // Chega a unidade da hora, de acordo com a dezena
-    if(horas == 20) {
-        teclado = -1;
-        while (teclado < 0) {
-            teclado = Keypad_Key_Click();
-            if(teclado > 3)
-                teclado = -1;
-        }
+    if(getTime(HORA, DEZENA) == 2) {
+        setTime(HORA, UNIDADE, 3);
     } else {
-        teclado = -1;
-        while (teclado < 0) {
-            teclado = Keypad_Key_Click();
-            delay_ms(5);
-        }
+        setTime(HORA, UNIDADE, 9);
     }
 
-    // Escreve a unidade da hora no LCD
-    sprintf(str, "%d", teclado);
+    // Escreve a unidade das horas no LCD
+    sprintf(str, "%d", getTime(HORA, UNIDADE));
     Lcd_Out(2, 2, str);
-    UARTprintf("%d", teclado);
-
-    // Salva a unidade da hora na variável
-    horas = horas + teclado;
 
     // Aguarda para ir para a etapa seguinte
     delay_ms(1500);
+    
+    // Limpa o LCD
     Lcd_Cmd(_LCD_CLEAR);
     Lcd_Cmd(_LCD_CURSOR_OFF);
 
     // Pergunta os minutos
-    UARTprintf("Digite o minuto \r\n");
     Lcd_Out(1, 1, "Digite o minuto: ");
 
-    // Atribuição para verificação
-    teclado = -1;
-    while (teclado < 0) {
-    	// Le a tecla que foi clicada
-        teclado = Keypad_Key_Click();
-
-        // Algarismo da dezena deve ser < 6
-        if(teclado > 5)
-            teclado = -1;
-    }
+    setTime(MINUTO, DEZENA, 5);
 
     // Escreve a dezena dos minutos no LCD
-    sprintf(str, "%d", teclado);
+    sprintf(str, "%d", getTime(MINUTO, DEZENA));
     Lcd_Out(2, 1, str);
-    UARTprintf("%d", teclado);
 
-    // Salva a dezena dos minutos na variável
-    minutos = teclado * 10;
     delay_ms(300);
 
-    // Atribuição de verificação
-    teclado = -1;
-
-    while(teclado < 0) {
-    	// Le a tecla que foi clicada
-        teclado = Keypad_Key_Click();
-        delay_ms(5);
-    }
+    setTime(MINUTO, UNIDADE, 9);
 
     // Escreve a unidade dos minutos no LCD
-    sprintf(str, "%d", teclado);
+    sprintf(str, "%d", getTime(MINUTO, UNIDADE));
     Lcd_Out(2, 2, str);
-    UARTprintf("%d", teclado);
-
-    // Salva a unidade dos minutos na variável
-    minutos = minutos + teclado;
 
     // Limpa o LCD
     Lcd_Cmd(_LCD_CLEAR);
     Lcd_Cmd(_LCD_CURSOR_OFF);
 
     // Formata as horas e escreve no LCD
-    sprintf(str, "%2d", horas);
+    sprintf(str, "%02d:%02d", getTime(HORA, 0), getTime(MINUTO, 0));
     Lcd_Out(1, 5, str);
-
-    // Divisor hora-minuto
-    Lcd_Out(1, 7, ":");
-
-    // Formata os minutos e escreve no LCD
-    sprintf(str, "%2d", minutos);
-    Lcd_Out(1, 8, str);
-
-    UARTprintf("%d", teclado);
 
     // Escreve legenda no LDC
     Lcd_Out(2, 1, "* C"); // Horário certo
@@ -364,23 +294,60 @@ void Configura_hora() {
     teclado =-1;
 
     while(teclado < 0) {
-		// Le a tecla que foi clicada
+        // Le a tecla que foi clicada
         teclado = Keypad_Key_Click();
         delay_ms(5);
     }
 
-	// Limpa o display
+    // Limpa o display
     Lcd_Cmd(_LCD_CURSOR_OFF);
     Lcd_Cmd(_LCD_CLEAR);
 
     if(teclado == 35) {// #
-    	// Configura novamente
+        // Configura novamente
         Configura_hora();
     }
     else if (teclado == 42) {
-    	// Habilita a interrupção do timer para contar o tempo
+        // Habilita a interrupção do timer para contar o tempo
         TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
     }
+}
+/********************************************************************************
+ *
+ * Função para setar a dezena ou unidade da hora ou minuto
+ *
+ ********************************************************************************/
+void setTime(int timeFactor, int algarismo, int maxValue) {
+    // Atribuição para verificação
+    int ans = -1;
+    do {
+        // Le a tecla que foi clicada
+        ans = Keypad_Key_Click();
+
+        // Verifica se é um algarismo válido
+        ans = (ans > maxValue ? -1 : ans);
+        delay_ms(5);
+    } while(ans > 0);
+
+    tempo += ans * timeFactor * algarismo;
+}
+
+/********************************************************************************
+ *
+ * Função para obter a hora ou minuto
+ *
+ ********************************************************************************/
+int getTime(int timeFactor, int algarismo) {
+    // Extrai a parcela referente ao timeFactor (hora, minuto ou segundo)
+    int ans = tempo / timeFactor % 60;
+
+    // Extrai a dezena ou unidade
+    if(algarismo == DEZENA)
+        ans /= 10;
+    else if(algarismo == UNIDADE)
+        ans %= 10; 
+
+    return ans;
 }
 
 /********************************************************************************
@@ -425,18 +392,18 @@ void Adiciona_Remedio() {
     Keypad_Init(KeypadColumns, KeypadRows);
     // Fim da configuração do teclado matricial
 
-	/****************************************************************************
-	 * Posição
-	 ****************************************************************************/
+    /****************************************************************************
+     * Posição
+     ****************************************************************************/
     // Pergunta a posição do remédio
     Lcd_Cmd(_LCD_CURSOR_OFF);
     Lcd_Cmd(_LCD_CLEAR);
     Lcd_Out(1, 1, "Posicao:");
 
     // Atribuição para verificação
-	int teclado = -1;
+    int teclado = -1;
     while (teclado < 0) {
-    	// Le a tecla que foi clicada
+        // Le a tecla que foi clicada
         teclado = Keypad_Key_Click();
         delay_ms(5);
 
@@ -456,136 +423,136 @@ void Adiciona_Remedio() {
     delay_ms(1500);
 
     /****************************************************************************
-	 * Hora
-	 ****************************************************************************/
-	// Pergunta a hora que o remédio deve ser tomado
+     * Hora
+     ****************************************************************************/
+    // Pergunta a hora que o remédio deve ser tomado
     Lcd_Cmd(_LCD_CURSOR_OFF);
     Lcd_Cmd(_LCD_CLEAR);
     Lcd_Out(1, 1, "Hora:");
 
-	// Atribuição para verificação
+    // Atribuição para verificação
     teclado = -1;
-	while (teclado < 0) {
-	    // Le a tecla que foi clicada
-	    teclado = Keypad_Key_Click();
+    while (teclado < 0) {
+        // Le a tecla que foi clicada
+        teclado = Keypad_Key_Click();
 
-	    // Verificação
-	    if(teclado > 2)
-	       teclado = -1;
-	}
+        // Verificação
+        if(teclado > 2)
+           teclado = -1;
+    }
 
-	// Escreve a dezena da hora no LCD
-	sprintf(str, "%d", teclado);
-	Lcd_Out(1, 7, str);
-	UARTprintf("%d", teclado);
+    // Escreve a dezena da hora no LCD
+    sprintf(str, "%d", teclado);
+    Lcd_Out(1, 7, str);
+    UARTprintf("%d", teclado);
 
-	// Salva a dezena da hora na variável
-	remedio_novo.hora_inicial = teclado * 10;
-	delay_ms(300);
+    // Salva a dezena da hora na variável
+    remedio_novo.hora_inicial = teclado * 10;
+    delay_ms(300);
 
-	// Realiza as verificações para a unidade conforme a dezena
-	if(remedio_novo.hora_inicial == 20) {
-		teclado = -1;
-		while (teclado < 0) {
-			// Le a tecla que foi clicada
-			teclado = Keypad_Key_Click();
+    // Realiza as verificações para a unidade conforme a dezena
+    if(remedio_novo.hora_inicial == 20) {
+        teclado = -1;
+        while (teclado < 0) {
+            // Le a tecla que foi clicada
+            teclado = Keypad_Key_Click();
 
-			// Não pode ser > 3
-			if(teclado > 3)
-				teclado = -1;
-		}
-	} else {
-		teclado = -1;
-		while (teclado < 0) {
-			// Le a tecla que foi clicada
-			teclado = Keypad_Key_Click();
-			delay_ms(5);
-		}
-	}
-	// Escreve a unidade no LCD
-	sprintf(str, "%d", teclado);
-	Lcd_Out(2, 2, str);
-	UARTprintf("%d", teclado);
+            // Não pode ser > 3
+            if(teclado > 3)
+                teclado = -1;
+        }
+    } else {
+        teclado = -1;
+        while (teclado < 0) {
+            // Le a tecla que foi clicada
+            teclado = Keypad_Key_Click();
+            delay_ms(5);
+        }
+    }
+    // Escreve a unidade no LCD
+    sprintf(str, "%d", teclado);
+    Lcd_Out(2, 2, str);
+    UARTprintf("%d", teclado);
 
-	// Salva a unidade da hora na variável
-	remedio_novo.hora_inicial = remedio_novo.hora_inicial + teclado;
+    // Salva a unidade da hora na variável
+    remedio_novo.hora_inicial = remedio_novo.hora_inicial + teclado;
 
-	/****************************************************************************
-	 * Minutos
-	 ****************************************************************************/
-	// Pergunta os minutos
-	Lcd_Cmd(_LCD_CURSOR_OFF);
+    /****************************************************************************
+     * Minutos
+     ****************************************************************************/
+    // Pergunta os minutos
+    Lcd_Cmd(_LCD_CURSOR_OFF);
     Lcd_Cmd(_LCD_CLEAR);
     Lcd_Out(1, 1, "Minuto:");
 
     // Atribuição para verificação
     teclado = -1;
     while (teclado < 0) {
-    	// Le a tecla que foi clicada
-    	teclado = Keypad_Key_Click();
+        // Le a tecla que foi clicada
+        teclado = Keypad_Key_Click();
 
-    	// Verificação
+        // Verificação
         if(teclado > 5)
         teclado = -1;
-	}
+    }
 
-	// Escreve a dezena do minuto no LCD
-	sprintf(str, "%d", teclado);
-	Lcd_Out(2, 1, str);
-	UARTprintf("%d", teclado);
+    // Escreve a dezena do minuto no LCD
+    sprintf(str, "%d", teclado);
+    Lcd_Out(2, 1, str);
+    UARTprintf("%d", teclado);
 
-	// Salva a dezena do minuto no LCD
-	remedio_novo.minuto_inicial = teclado * 10;
-	delay_ms(300);
+    // Salva a dezena do minuto no LCD
+    remedio_novo.minuto_inicial = teclado * 10;
+    delay_ms(300);
 
-	// Atribuição para verificação
-	teclado = -1;
+    // Atribuição para verificação
+    teclado = -1;
 
-	while (teclado < 0) {
-		// Le a tecla que foi clicada
-	   	teclado = Keypad_Key_Click();
-	   	delay_ms(5);
-	}
+    while (teclado < 0) {
+        // Le a tecla que foi clicada
+        teclado = Keypad_Key_Click();
+        delay_ms(5);
+    }
 
-	// Escreve a unidade do minuto no LCD
-	sprintf(str, "%d", teclado);
-	Lcd_Out(2, 2, str);
-	UARTprintf("%d", teclado);
+    // Escreve a unidade do minuto no LCD
+    sprintf(str, "%d", teclado);
+    Lcd_Out(2, 2, str);
+    UARTprintf("%d", teclado);
 
-	// Salva a unidade do minuto na variável
-	remedio_novo.minuto_inicial = remedio_novo.minuto_inicial + teclado;
-	delay_ms(1500);
+    // Salva a unidade do minuto na variável
+    remedio_novo.minuto_inicial = remedio_novo.minuto_inicial + teclado;
+    delay_ms(1500);
 
-	// Limpa o LCD
-	Lcd_Cmd(_LCD_CLEAR);
-	Lcd_Cmd(_LCD_CURSOR_OFF);
+    // Limpa o LCD
+    Lcd_Cmd(_LCD_CLEAR);
+    Lcd_Cmd(_LCD_CURSOR_OFF);
 
-	/****************************************************************************
-	 * Comprimidos
-	 ****************************************************************************/
-	// Pergunta a quantidade de comprimidos
-	Lcd_Cmd(_LCD_CURSOR_OFF);
-	Lcd_Cmd(_LCD_CLEAR);
-	Lcd_Out(1, 1, "Quantidade:");
+    /****************************************************************************
+     * Comprimidos
+     ****************************************************************************/
+    // Pergunta a quantidade de comprimidos
+    Lcd_Cmd(_LCD_CURSOR_OFF);
+    Lcd_Cmd(_LCD_CLEAR);
+    Lcd_Out(1, 1, "Quantidade:");
 
-	// Atribuição para verificação
-	teclado = -1;
+    // Atribuição para verificação
+    teclado = -1;
 
-	while (teclado < 0) {
-		// Le qual tecla foi clicada
-		teclado = Keypad_Key_Click();
-		delay_ms(5);
-	}
+    while (teclado < 0) {
+        // Le qual tecla foi clicada
+        teclado = Keypad_Key_Click();
+        delay_ms(5);
+    }
 
-	// Escreve a quantidade de comprimidos 
-	sprintf(str, "%d", teclado);
-	Lcd_Out(1, 1, str);
-	UARTprintf("%d", teclado);
-	remedio_novo.quant_comprimido = teclado * 10;
-	delay_ms(300);
+    // Escreve a quantidade de comprimidos 
+    sprintf(str, "%d", teclado);
+    Lcd_Out(1, 1, str);
+    UARTprintf("%d", teclado);
+    remedio_novo.quant_comprimido = teclado * 10;
+    delay_ms(300);
 
-	// TODO
-	int intervalo;
+    // TODO
+    int intervalo;
 
 
 }
@@ -596,7 +563,7 @@ void Adiciona_Remedio() {
  *
  ********************************************************************************/
 void Remove_Remedio() {
-	// Limpa o LCD
+    // Limpa o LCD
     Lcd_Cmd(_LCD_CURSOR_OFF);
     Lcd_Cmd(_LCD_CLEAR);
 }
@@ -608,30 +575,12 @@ void Remove_Remedio() {
  ********************************************************************************/
 void Imprime_hora() {
 
-    uint8_t segundos_imprimir [4] = "   ";
-    uint8_t minutos_imprimir [4] = "   ";
-    uint8_t horas_imprimir [4] = "   ";
+    uint8_t str[];
+    sprintf(str, "%02d%:02d:%02d",  getTime(HORA, 0),
+                                    getTime(MINUTO, 0),
+                                    getTime(SEGUNDO, 0));
 
-
-    segundos_imprimir[0] = segundos/10;
-    segundos_imprimir[0] += 0x30;
-    segundos_imprimir[1] = segundos%10;
-    segundos_imprimir[1] += 0x30;
-    minutos_imprimir[0] = minutos/10;
-    minutos_imprimir[0] += 0x30;
-    minutos_imprimir[1] = minutos%10;
-    minutos_imprimir[1] += 0x30;
-    horas_imprimir[0] = horas/10;
-    horas_imprimir[0] += 0x30;
-    horas_imprimir[1] = horas%10;
-    horas_imprimir[1] += 0x30;
-
-
-    Lcd_Out(1, 4, horas_imprimir);
-    Lcd_Out(1, 6, ":");
-    Lcd_Out(1, 7, minutos_imprimir);
-    Lcd_Out(1, 9, ":");
-    Lcd_Out(1, 10, segundos_imprimir);
+    Lcd_Out(1, 4, str);
 }
 
 /********************************************************************************
