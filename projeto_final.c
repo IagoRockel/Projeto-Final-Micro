@@ -15,6 +15,8 @@
 #include "driverlib/interrupt.h"
 #include "inc/hw_ints.h"
 
+#include "ourdefines.h"
+
 #define RED_LED   GPIO_PIN_1    //PF1
 #define BLUE_LED  GPIO_PIN_2    //PF2
 #define GREEN_LED GPIO_PIN_3    //PF3
@@ -23,14 +25,7 @@
 #define GPIO_PIN_TYPE_STD_WPU 0x0000000A
 #define GPIO_STRENGTH_4MA 0x00000002
 
-// Número de compartimentos para remédios
-#define NUM_REMEDIOS 6
 
-#define HORA 3600
-#define MINUTO 60
-#define SEGUNDO 1
-#define DEZENA 10
-#define UNIDADE 1
 
 /********************************************************************************
  *
@@ -50,18 +45,8 @@ __error__(char *pcFilename, uint32_t ui32Line)
  * Variáveis globais do projeto
  *
  ********************************************************************************/
-uint8_t tempo = 0;
 
-typedef struct tipo_remedio {
-    int posicao; // compartimento em que o remédio será alocado
-    int hora_inicial; // hora para tomar o remédio
-    int minuto_inicial; // minuto para tomar o remédio
-    int quant_comprimido; // quantidade de comprimidos em uma dose
-    int intervalo; // intervalo em horas entre as doses
-} remedios;
-
-
-remedios *lista_remedios[NUM_REMEDIOS];
+Remedios remedios[NUM_REMEDIOS];
 
 /********************************************************************************
  *
@@ -113,18 +98,8 @@ void Teclado_Setup() {
 
     // Check if the peripheral access is enabled.
     while (!SysCtlPeripheralReady(SYSCTL_PERIPH_GPIOD));
-}
 
-/********************************************************************************
- *
- * Função que mostra o menu
- *
- ********************************************************************************/
-void Menu() {
-    // Variável para armazenar a opção escolhida pelo usuário
-    int opc;
-
-    // Configura as teclas do teclado matricial
+    // Configura o teclado matricial
     PinDefinition KeypadColumns[4], KeypadRows[4];
 
     KeypadColumns[0].ui32Port = GPIO_PORTC_BASE;
@@ -153,10 +128,20 @@ void Menu() {
 
     Keypad_Init(KeypadColumns, KeypadRows);
     // Fim da configuração do teclado matricial
+}
+
+/********************************************************************************
+ *
+ * Função que mostra o menu
+ *
+ ********************************************************************************/
+void Menu() {
+    // Variável para armazenar a opção escolhida pelo usuário
+    int opc;
 
     // Mostra as opções do menu
-    Lcd_Out(1, 1, "1.Adicione");
-    Lcd_Out(2, 1, "2.Remova");
+    Lcd_Out(1, 1, "1. Adicione");
+    Lcd_Out(2, 1, "2. Remova");
 
     // Atribuição para verificação
     opc = -1; 
@@ -193,40 +178,12 @@ void Menu() {
 void Configura_hora() {
 
     uint8_t str[16];
-
-    // Configura o teclado matricial
-    PinDefinition KeypadColumns[4], KeypadRows[4];
     int teclado;
-
-    KeypadColumns[0].ui32Port = GPIO_PORTC_BASE;
-    KeypadColumns[0].ui8Pin = GPIO_PIN_4;
-
-    KeypadColumns[1].ui32Port = GPIO_PORTC_BASE;
-    KeypadColumns[1].ui8Pin = GPIO_PIN_5;
-
-    KeypadColumns[2].ui32Port = GPIO_PORTC_BASE;
-    KeypadColumns[2].ui8Pin = GPIO_PIN_6;
-
-    KeypadColumns[3].ui32Port = GPIO_PORTC_BASE;
-    KeypadColumns[3].ui8Pin = GPIO_PIN_7;
-
-    KeypadRows[0].ui32Port = GPIO_PORTD_BASE;
-    KeypadRows[0].ui8Pin = GPIO_PIN_0;
-
-    KeypadRows[1].ui32Port = GPIO_PORTD_BASE;
-    KeypadRows[1].ui8Pin = GPIO_PIN_1;
-
-    KeypadRows[2].ui32Port = GPIO_PORTD_BASE;
-    KeypadRows[2].ui8Pin = GPIO_PIN_2;
-
-    KeypadRows[3].ui32Port = GPIO_PORTD_BASE;
-    KeypadRows[3].ui8Pin = GPIO_PIN_3;
-
-    Keypad_Init(KeypadColumns, KeypadRows);
-    // Fim da configuração do teclado matricial
 
     // Desabilita a interrupção do timer
     TimerIntDisable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
+
+    tempo = 0;
 
     // Limpa o LCD
     Lcd_Cmd(_LCD_CLEAR);
@@ -318,17 +275,7 @@ void Configura_hora() {
  *
  ********************************************************************************/
 void setTime(int timeFactor, int algarismo, int maxValue) {
-    // Atribuição para verificação
-    int ans = -1;
-    do {
-        // Le a tecla que foi clicada
-        ans = Keypad_Key_Click();
-
-        // Verifica se é um algarismo válido
-        ans = (ans > maxValue ? -1 : ans);
-        delay_ms(5);
-    } while(ans > 0);
-
+    readKeyboard(maxValue);
     tempo += ans * timeFactor * algarismo;
 }
 
@@ -341,11 +288,31 @@ int getTime(int timeFactor, int algarismo) {
     // Extrai a parcela referente ao timeFactor (hora, minuto ou segundo)
     int ans = tempo / timeFactor % 60;
 
-    // Extrai a dezena ou unidade
+    // Extrai a dezena ou unidade, se especificado um destes
     if(algarismo == DEZENA)
         ans /= 10;
     else if(algarismo == UNIDADE)
         ans %= 10; 
+
+    return ans;
+}
+
+/********************************************************************************
+ *
+ * Função para ler o teclado quando for entrada em horas/minutos
+ *
+ ********************************************************************************/
+int readKeyboard(int maxValue) {
+    // Atribuição para verificação
+    int ans -1;
+    do {
+        // Le a tecla que foi clicada
+        ans = Keypad_Key_Click();
+
+        // Verifica se é um algarismo válido
+        ans = (ans > maxValue ? -1 : ans);
+        delay_ms(5);
+    } while(ans > 0);
 
     return ans;
 }
@@ -357,40 +324,7 @@ int getTime(int timeFactor, int algarismo) {
  ********************************************************************************/
 void Adiciona_Remedio() {
 
-    int i;
-    int k;
-    
-    remedios remedio_novo;
-
-    // Configura o teclado matricial
-    PinDefinition KeypadColumns[4], KeypadRows[4];
-
-    KeypadColumns[0].ui32Port = GPIO_PORTC_BASE;
-    KeypadColumns[0].ui8Pin = GPIO_PIN_4;
-
-    KeypadColumns[1].ui32Port = GPIO_PORTC_BASE;
-    KeypadColumns[1].ui8Pin = GPIO_PIN_5;
-
-    KeypadColumns[2].ui32Port = GPIO_PORTC_BASE;
-    KeypadColumns[2].ui8Pin = GPIO_PIN_6;
-
-    KeypadColumns[3].ui32Port = GPIO_PORTC_BASE;
-    KeypadColumns[3].ui8Pin = GPIO_PIN_7;
-
-    KeypadRows[0].ui32Port = GPIO_PORTD_BASE;
-    KeypadRows[0].ui8Pin = GPIO_PIN_0;
-
-    KeypadRows[1].ui32Port = GPIO_PORTD_BASE;
-    KeypadRows[1].ui8Pin = GPIO_PIN_1;
-
-    KeypadRows[2].ui32Port = GPIO_PORTD_BASE;
-    KeypadRows[2].ui8Pin = GPIO_PIN_2;
-
-    KeypadRows[3].ui32Port = GPIO_PORTD_BASE;
-    KeypadRows[3].ui8Pin = GPIO_PIN_3;
-
-    Keypad_Init(KeypadColumns, KeypadRows);
-    // Fim da configuração do teclado matricial
+    Remedios remedio_novo;
 
     /****************************************************************************
      * Posição
@@ -401,19 +335,19 @@ void Adiciona_Remedio() {
     Lcd_Out(1, 1, "Posicao:");
 
     // Atribuição para verificação
-    int teclado = -1;
-    while (teclado < 0) {
+    int teclado;
+    do {
         // Le a tecla que foi clicada
         teclado = Keypad_Key_Click();
         delay_ms(5);
 
-        // Verifica se é uma posição válida
-        if(teclado > (NUM_REMEDIOS-1))
+        // Verifica se é uma posição válida e se não está ocupada
+        if(teclado > (NUM_REMEDIOS-1) || !remedios[teclado].disponivel) 
             teclado = -1;
-    }
+    } while(teclado < 0);
 
     // Salva a posição do remédio
-    remedio_novo.posicao=teclado
+    remedio_novo.posicao = teclado
 
     // Escreve a posição do remédio
     sprintf(str, "%d", remedio_novo.posicao);
@@ -430,52 +364,25 @@ void Adiciona_Remedio() {
     Lcd_Cmd(_LCD_CLEAR);
     Lcd_Out(1, 1, "Hora:");
 
-    // Atribuição para verificação
-    teclado = -1;
-    while (teclado < 0) {
-        // Le a tecla que foi clicada
-        teclado = Keypad_Key_Click();
-
-        // Verificação
-        if(teclado > 2)
-           teclado = -1;
-    }
+    teclado = readKeyboard(2);
 
     // Escreve a dezena da hora no LCD
     sprintf(str, "%d", teclado);
     Lcd_Out(1, 7, str);
-    UARTprintf("%d", teclado);
 
     // Salva a dezena da hora na variável
-    remedio_novo.hora_inicial = teclado * 10;
+    remedio_novo.tempo = teclado * HORA * DEZENA;
     delay_ms(300);
 
-    // Realiza as verificações para a unidade conforme a dezena
-    if(remedio_novo.hora_inicial == 20) {
-        teclado = -1;
-        while (teclado < 0) {
-            // Le a tecla que foi clicada
-            teclado = Keypad_Key_Click();
+    teclado = (teclado == 2 ? readKeyboard(3) : readKeyboard(9));
 
-            // Não pode ser > 3
-            if(teclado > 3)
-                teclado = -1;
-        }
-    } else {
-        teclado = -1;
-        while (teclado < 0) {
-            // Le a tecla que foi clicada
-            teclado = Keypad_Key_Click();
-            delay_ms(5);
-        }
-    }
     // Escreve a unidade no LCD
     sprintf(str, "%d", teclado);
-    Lcd_Out(2, 2, str);
-    UARTprintf("%d", teclado);
+    Lcd_Out(1, 8, str);
 
     // Salva a unidade da hora na variável
-    remedio_novo.hora_inicial = remedio_novo.hora_inicial + teclado;
+    remedio_novo.tempo = remedio_novo.tempo + teclado * HORA * UNIDADE;
+    delay_ms(1000);
 
     /****************************************************************************
      * Minutos
@@ -486,41 +393,24 @@ void Adiciona_Remedio() {
     Lcd_Out(1, 1, "Minuto:");
 
     // Atribuição para verificação
-    teclado = -1;
-    while (teclado < 0) {
-        // Le a tecla que foi clicada
-        teclado = Keypad_Key_Click();
+    teclado = readKeyboard(5);
 
-        // Verificação
-        if(teclado > 5)
-        teclado = -1;
-    }
-
-    // Escreve a dezena do minuto no LCD
+    // Escreve a dezena da hora no LCD
     sprintf(str, "%d", teclado);
-    Lcd_Out(2, 1, str);
-    UARTprintf("%d", teclado);
+    Lcd_Out(1, 9, str);
 
-    // Salva a dezena do minuto no LCD
-    remedio_novo.minuto_inicial = teclado * 10;
+    // Salva a dezena da hora na variável
+    remedio_novo.tempo = teclado * MINUTO * DEZENA;
     delay_ms(300);
 
-    // Atribuição para verificação
-    teclado = -1;
+    teclado = readKeyboard(9);
 
-    while (teclado < 0) {
-        // Le a tecla que foi clicada
-        teclado = Keypad_Key_Click();
-        delay_ms(5);
-    }
-
-    // Escreve a unidade do minuto no LCD
+    // Escreve a unidade no LCD
     sprintf(str, "%d", teclado);
-    Lcd_Out(2, 2, str);
-    UARTprintf("%d", teclado);
+    Lcd_Out(1, 10, str);
 
-    // Salva a unidade do minuto na variável
-    remedio_novo.minuto_inicial = remedio_novo.minuto_inicial + teclado;
+    // Salva a unidade da hora na variável
+    remedio_novo.tempo = remedio_novo.tempo + teclado * MINUTO * UNIDADE;
     delay_ms(1500);
 
     // Limpa o LCD
@@ -536,25 +426,22 @@ void Adiciona_Remedio() {
     Lcd_Out(1, 1, "Quantidade:");
 
     // Atribuição para verificação
-    teclado = -1;
-
-    while (teclado < 0) {
-        // Le qual tecla foi clicada
-        teclado = Keypad_Key_Click();
-        delay_ms(5);
-    }
+    teclado = readKeyboard(9);
 
     // Escreve a quantidade de comprimidos 
     sprintf(str, "%d", teclado);
-    Lcd_Out(1, 1, str);
+    Lcd_Out(1, 13, str);
     UARTprintf("%d", teclado);
-    remedio_novo.quant_comprimido = teclado * 10;
-    delay_ms(300);
+    remedio_novo.comprimido = teclado;
+    delay_ms(1000);
 
-    // TODO
-    int intervalo;
-
-
+    /****************************************************************************
+     * Intervalo
+     ****************************************************************************/
+    // Pergunta a quantidade de comprimidos
+    Lcd_Cmd(_LCD_CURSOR_OFF);
+    Lcd_Cmd(_LCD_CLEAR);
+    Lcd_Out(1, 1, "Intervalo:");
 }
 
 /********************************************************************************
@@ -585,25 +472,11 @@ void Imprime_hora() {
 
 /********************************************************************************
  *
- * Função main
+ * Função para configurar o timer
  *
  ********************************************************************************/
-int main(void) {
-    int i = 0;
-    // Habilita clock geral do sistema para rodar em 50 MHz a partir do PLL com cristal
-    SysCtlClockSet(SYSCTL_SYSDIV_4|SYSCTL_USE_PLL|SYSCTL_XTAL_16MHZ|SYSCTL_OSC_MAIN);
-
-    // Habilita e espera o acesso ao PORTF
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
-    while (!SysCtlPeripheralReady(SYSCTL_PERIPH_GPIOF))
-    {
-    }
-
-    // Configura o GPIOF para operação com LEDs
-    GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, RED_LED | BLUE_LED | GREEN_LED);
+void setupTimer() {
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
-
-    // Configura o Timer
     IntMasterEnable();
     TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
     TimerPrescaleSet(TIMER0_BASE, TIMER_A, 0);
@@ -612,13 +485,18 @@ int main(void) {
     TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
     TimerEnable(TIMER0_BASE, TIMER_A);
     TimerIntRegister(TIMER0_BASE, TIMER_A, Interrupcao_Timer0);
+}
+/********************************************************************************
+ *
+ * Função main
+ *
+ ********************************************************************************/
+int main(void) {
+    // Habilita clock geral do sistema para rodar em 50 MHz a partir do PLL com cristal
+    SysCtlClockSet(SYSCTL_SYSDIV_4|SYSCTL_USE_PLL|SYSCTL_XTAL_16MHZ|SYSCTL_OSC_MAIN);
 
-    for(i = 0; i < NUM_REMEDIOS; i++) {
-        lista_remedios[i] = 0;
-    }
-
-    // Configura UART
-    ConfigureUART();
+    // Configura o Timer
+    setupTimer();
 
     // Configura o Teclado
     Teclado_Setup();
@@ -626,13 +504,19 @@ int main(void) {
     // Configura o display LCD
     LCD_Setup();
 
-    // Exibe o menu
-    Menu();
-
     // Configura a hora
     Configura_hora();
-
+    
+    // Variável de verificação
+    int teclado = -1;
     while(1) {
+        // Mostra as horas no LCD
         Imprime_hora();
+
+        // Leitura do teclado matricial, qualquer tecla chama menu
+        teclado = Keypad_Key_Click();
+        if(teclado > 0) {
+            Menu();
+        }
     }
 }
