@@ -19,22 +19,25 @@ Tendo medicamentos cadastrados, quando estiver na hora de serem ingeridos, o dis
 ### Desenvolvimento
 O que foi feito até o momento.
 
+### 07/07/19
+* Progrma finalizado
+
+#### 26/06/19
+* Alteração nas funções envolvendo horários
+* Adição de funções para deixar o código mais legível
+* Implementando *Adiciona_Remedio*
+
 #### 18/06/19
 * Adição de comentários ao código fonte
 * Formatação do código fonte
 * Atualização do **TODO**
 
 #### 17/06/19
-* Configuração do *display LCD* - OK 
-* Implementação do teclado matricial - OK
-* Configurar horário - OK
-* Adicionar medicamento - **Incompleto**
+* Configuração do *display LCD* 
+* Implementação do teclado matricial
+* Configurar horário
+* Adicionar medicamento
 
 ### TODO
-* Implementar menu através de interrupção
-* Salvar os medicamentos na memória EEPROM
-* Implementar função para remover medicamentos
-* Implementar lógica para tomar um remédio (*beep, display* e motor de passo)
-* Finalizar a função *Adiciona_Remedio*
-* Otimizar código
-* Padronizar nomenclaturas
+* Atualizar README
+* Criar um manual de usuário
