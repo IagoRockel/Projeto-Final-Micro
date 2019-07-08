@@ -35,7 +35,7 @@ Depois _"Informe o intervalo que o remedio deve ser tomado!"_ é exibido, seguid
 Por fim _"MEDICAMENTO CADASTRADO!"_ é exibido no terminal, indicando que o remédio foi cadastrado, e encerrando o menu.
 
 #### 2. Remover remedio
-É exibido _"Removendo remedio"_ no LCD e _"REMOCAO DE REMEDIO"_ no terminal. Similarmente ao [1. Cadastrar remedio](../master/USER_MANUAL.md#), há duas possibilidades.
+É exibido _"Removendo remedio"_ no LCD e _"REMOCAO DE REMEDIO"_ no terminal. Similarmente ao [1. Cadastrar remedio], há duas possibilidades.
 
 Uma delas é que não há nenhum remédio cadastrado para ser removido, o que mostra as mensagens _"Nenhum remedio para remover!"_ e _"REMOCAO ENCERRADA!"_, encerrando a remoção dos remédios e o menu.
 
@@ -44,9 +44,10 @@ Uma delas é que não há nenhum remédio cadastrado para ser removido, o que mo
 #### 4. Listar remedios
 
 #### 5. Configurar horario
-Idem ao processo descrito em [Inicialização](../master/USER_MANUAL.md#inicialização).
+Idem ao processo descrito em [Inicialização].
 
 #### 6. Voltar
 Exibe _"Menu encerrado"_ e encerra o menu.
 
-[1. Cadastrar remedio]: https://github.com/IagoRockel/Projeto-Final-Micro/blob/master/USER_MANUAL.md#1-cadastrar-remedio
+[Inicialização]:USER_MANUAL.md#inicialização
+[1. Cadastrar remedio]:USER_MANUAL.md#1-cadastrar-remedio
