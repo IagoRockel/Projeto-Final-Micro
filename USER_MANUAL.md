@@ -28,7 +28,7 @@ Em sequência o dispositivo gira até a posição especificada e exibe _"Coloque
 
 Obtendo uma resposta válida, o motor retorna para a posição inicial e depois exibe _"Quantidade de comprimidos por dose: "_ no terminal. Resposta do tipo número de um algarismo entre 1-9. Após receber um número correto prossegue sem a tecla _"ENTER"_.
 
-_"Informe o horario que o remedio deve ser tomado!"_ é exibido, seguido de _"Hora: "_ e _"Minuto: "_, similarmente ao processo descrito em [Inicialização](../blob/master/USER_MANUAL.md#inicialização).
+_"Informe o horario que o remedio deve ser tomado!"_ é exibido, seguido de _"Hora: "_ e _"Minuto: "_, similarmente ao processo descrito em [Inicialização](../master/USER_MANUAL.md#inicialização).
 
 Depois _"Informe o intervalo que o remedio deve ser tomado!"_ é exibido, seguido de _"Intervalo em horas: "_ repetidamente até obter uma resposta válida (número de 00-24), sendo que 00 e 24 ambos representam 1 vez ao dia.
 
@@ -44,7 +44,7 @@ Uma delas é que não há nenhum remédio cadastrado para ser removido, o que mo
 #### 4. Listar remedios
 
 #### 5. Configurar horario
-Idem ao processo descrito em [Inicialização](../blob/master/USER_MANUAL.md#inicialização).
+Idem ao processo descrito em [Inicialização](../master/USER_MANUAL.md#inicialização).
 
 #### 6. Voltar
 Exibe _"Menu encerrado"_ e encerra o menu.
