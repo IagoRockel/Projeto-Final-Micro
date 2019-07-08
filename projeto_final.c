@@ -910,12 +910,12 @@ void checkRemedios() {
 
     // Varre os remédios para verificar o estoque
     for(i = 1; i < NUM_REMEDIOS; i++) {
-        if(remedios[i].ocupado) {
-            if(remedios[i].estoque == 0) {
-                // Indica que o alarme deve ser ligado
-                alarmeEstoqueOn = 1;
-                break;
-            }
+        // Se houver remédio cadastrado na posição i com estoque igual zero
+        if(remedios[i].ocupado && remedios[i].estoque == 0) {
+            // Indica que o alarme deve ser ligado
+            alarmeEstoqueOn = 1;
+            // Sai do loop
+            break;
         } else if(i == NUM_REMEDIOS - 1) {
             // Se chegar aqui significa que todos estão ok, desliga o alarme
             alarmeEstoqueOn = 0;
@@ -925,6 +925,11 @@ void checkRemedios() {
     setMotorTo(POS0);
 }
 
+/********************************************************************************
+ *
+ * Função que executa as operações para tomar um remédio
+ *
+ ********************************************************************************/
 void tomarRemedio(int position) {
 
     // Textos para mostrar no LCD
