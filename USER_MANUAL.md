@@ -49,4 +49,4 @@ Idem ao processo descrito em [Inicialização](../master/USER_MANUAL.md#iniciali
 #### 6. Voltar
 Exibe _"Menu encerrado"_ e encerra o menu.
 
-[1. Cadastrar remedio]: ../master/USER_MANUAL.md#1-cadastrar-remedio
+[1. Cadastrar remedio]: https://github.com/IagoRockel/Projeto-Final-Micro/blob/master/USER_MANUAL.md#1-cadastrar-remedio
