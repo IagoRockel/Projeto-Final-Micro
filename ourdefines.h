@@ -88,7 +88,7 @@
 
 #define NUM_REMEDIOS 6 // Número de compartimentos da estrutura dos remédios
 
-#define MENU_PERSISTANT 1 // Indica se o menu será persistente ou não
+#define MENU_PERSISTENT 1 // Indica se o menu será persistente ou não
 
 #define POS0 0 	 // Valor referente a posição 0	
 #define POS1 33  // Valor referente a posição 1
