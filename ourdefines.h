@@ -2,7 +2,7 @@
  * ourdefines.h
  *
  * Criado por: Iago Rockel e Renata Costa
- * Atualizado em: 07/07/2019
+ * Atualizado em: 08/07/2019
  *
  * Header file que contem as constantes a serem utilizadas nas atividades
  * praticas da disciplina de sistemas microcontrolados, com o intuito de
@@ -86,14 +86,16 @@
  * Projeto Final
  ********************************************************************************/
 
-#define NUM_REMEDIOS 6 // Numero de compartimentos da estrutura dos remedios
+#define NUM_REMEDIOS 6 // Número de compartimentos da estrutura dos remédios
 
-#define POS0 0 
-#define POS1 33 
-#define POS2 66 
-#define POS3 100 
-#define POS4 133 
-#define POS5 166 
+#define MENU_PERSISTANT 1 // Indica se o menu será persistente ou não
+
+#define POS0 0 	 // Valor referente a posição 0	
+#define POS1 33  // Valor referente a posição 1
+#define POS2 66  // Valor referente a posição 2
+#define POS3 100 // Valor referente a posição 3
+#define POS4 133 // Valor referente a posição 4
+#define POS5 166 // Valor referente a posição 5
 
 #define HORA 3600 // Equivalente em segundos
 #define MINUTO 60 // Equivalente em segundos
@@ -101,19 +103,19 @@
 #define DEZENA 10 // Equivalente algebrico
 #define UNIDADE 1 // Equivalente algebrico
 
-#define ADICIONAR 0xAB
-#define REMOVER 0x71
-#define ABASTECER 0x15
+#define ADICIONAR 0xAB  // Verificação de chamado de função
+#define REMOVER 0x71	// Verificação de chamado de função
+#define ABASTECER 0x15	// Verificação de chamado de função
 
 typedef struct tipo_remedio {
-    int horario; // horario para tomar o remédio
-    int dose; // quantidade de comprimidos em uma dose
-    int intervalo; // intervalo em horas entre as doses
-    int ocupado; // indica se o compartimento esta ocupado
-    int estoque; // quantidade de comprimidos no compartimento
-    int tomar; // flag que indica se está na hora de tomar o remédio
+    int horario; 	// horario para tomar o remédio
+    int dose; 		// quantidade de comprimidos em uma dose
+    int intervalo; 	// intervalo em horas entre as doses
+    int ocupado; 	// indica se o compartimento esta ocupado
+    int estoque; 	// quantidade de comprimidos no compartimento
+    int tomar; 		// flag que indica se está na hora de tomar o remédio
 } Remedios;
 
-int posicao[] = {POS0, POS1, POS2, POS3, POS4, POS5};
+int posicao[] = {POS0, POS1, POS2, POS3, POS4, POS5}; // Vetor com as posições
 
 #endif // OURDEFINES_H_
