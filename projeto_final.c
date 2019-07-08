@@ -611,6 +611,28 @@ void abasteceRemedio() {
     // Informa que um remédio será cadastrado
     UARTprintf("\n\nABASTECIMENTO DE REMEDIO\n\n");
 
+    // Variável para verificar se há posições disponíveis
+    int posDisponivel = 0;
+
+    // Verifica se existe remédios para serem abastecidos
+    int i;
+    for(i = 1; i < NUM_REMEDIOS; i++) {
+        // Se posição estiver ocupada
+        if(remedios[i].ocupado) {
+            // Existe pelo menos uma posição para abastecer
+            posDisponivel = 1;
+            break;
+        }
+    }
+
+    // Se não tiver posições disponíveis
+    if(!posDisponivel) {
+        // Informa o usuário e encerra a função
+        UARTprintf("Nenhum remedio para abastecer!\n");
+        UARTprintf("ABASTECIMENTO ENCERRADO!\n");
+        return;
+    }
+
     // Pergunta a posição para abastecer
     int pos = askPosition(ABASTECER);
 
