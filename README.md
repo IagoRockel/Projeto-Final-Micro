@@ -11,16 +11,23 @@ A estrutura do dispositivo será uma caixa circular com alguns compartimentos pa
 O responsável deverá configurar a hora do dispositivo (pois não será utilizado um módulo RTC) e depois terá a opção de cadastrar ou remover medicamentos. Este cadastro inclui:
 * Posição do remédio (qual compartimento da caixa)
 * Horário que o remédio deve ser tomado
+* Quantidade de comprimidos guardados no compartimento
 * Quantidade compreendida por uma dose do medicamento
 * Intervalo em horas entre doses do remédio
 
-Tendo medicamentos cadastrados, quando estiver na hora de serem ingeridos, o dispositivo toca um *beep* para o idoso perceber que deve tomar o remédio e, a tampa gira para o compartimento correspondente através de um motor de passo. No *display* será exibido a quantidade de remédios que devem ser tomados e, ao final, o idoso deve apertar um botão no teclado matricial para indicar que tomou o remédio, momento no qual o *beep* para de tocar e a tampa retorna para sua posição inicial, onde não há medicamento.
+Tendo medicamentos cadastrados, quando estiver na hora de serem ingeridos, o dispositivo aciona um alarme (LED verde) para o idoso perceber que deve tomar o remédio e, a tampa gira para o compartimento correspondente através de um motor de passo. No *display* será exibido a quantidade de remédios que devem ser tomados e, ao final, o idoso deve apertar um botão no teclado matricial para indicar que tomou o remédio, momento no qual o alarme para de piscar e a tampa retorna para sua posição inicial, onde não há medicamento.
 
-### Desenvolvimento
+### Log de desenvolvimento
 O que foi feito até o momento.
 
-### 07/07/19
-* Progrma finalizado
+#### 08/07/19
+* Criação de um [manual de usuário](USER_MANUAL.md)
+* Correção de um bug e na função _abasteceRemedio_
+* Aprimoramento da lógica da função _abasteceRemedio_
+* Adicionado opção de menu persistente
+
+#### 07/07/19
+* Programa finalizado
 
 #### 26/06/19
 * Alteração nas funções envolvendo horários
@@ -37,7 +44,3 @@ O que foi feito até o momento.
 * Implementação do teclado matricial
 * Configurar horário
 * Adicionar medicamento
-
-### TODO
-* Atualizar README
-* Criar um manual de usuário
