@@ -648,6 +648,9 @@ void abasteceRemedio() {
     // Atualiza a quantidade em estoque
     remedios[pos].estoque += comprimidos;
 
+    // Retorna o motor para posição inicial
+    setMotorTo(POS0);
+
     // Informa que um remédio será cadastrado
     UARTprintf("\nABASTECIMENTO REALIZADO!\n\n");
 }
