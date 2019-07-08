@@ -371,7 +371,10 @@ void cadastraRemedio() {
         // Informa o usuário e encerra a função
         UARTprintf("Nenhuma posicao disponivel!\n");
         UARTprintf("CADASTRO ENCERRADO!\n");
-        return;
+
+        // Se menu configurado para ser persistente, volta para menu
+        if(MENU_PERSISTANT)
+            Menu();
     }
 
     /****************************************************************************
@@ -449,6 +452,10 @@ void cadastraRemedio() {
 
     // Informa que o remédio foi cadastrado
     UARTprintf("\nMEDICAMENTO CADASTRADO!\n");
+
+    // Se menu configurado para ser persistente, volta para menu
+    if(MENU_PERSISTANT)
+        Menu();
 }
 
 /********************************************************************************
@@ -534,7 +541,10 @@ void deletaRemedio() {
         // Informa o usuário e encerra a função
         UARTprintf("Nenhum remedio para remover!\n");
         UARTprintf("REMOCAO ENCERRADA!\n");
-        return;
+
+        // Se menu configurado para ser persistente, volta para menu
+        if(MENU_PERSISTANT)
+            Menu();
     }
 
     /****************************************************************************
@@ -593,6 +603,10 @@ void deletaRemedio() {
 
     // Informa que o medicamento foi removido
     UARTprintf("\nREMEDIO REMOVIDO!\n");
+
+    // Se menu configurado para ser persistente, volta para menu
+    if(MENU_PERSISTANT)
+        Menu();
 }
 
 /********************************************************************************
@@ -630,7 +644,10 @@ void abasteceRemedio() {
         // Informa o usuário e encerra a função
         UARTprintf("Nenhum remedio para abastecer!\n");
         UARTprintf("ABASTECIMENTO ENCERRADO!\n");
-        return;
+
+        // Se menu configurado para ser persistente, volta para menu
+        if(MENU_PERSISTANT)
+            Menu();
     }
 
     // Pergunta a posição para abastecer
@@ -653,6 +670,10 @@ void abasteceRemedio() {
 
     // Informa que um remédio será cadastrado
     UARTprintf("\nABASTECIMENTO REALIZADO!\n\n");
+
+    // Se menu configurado para ser persistente, volta para menu
+    if(MENU_PERSISTANT)
+        Menu();
 }
 
 /********************************************************************************
@@ -706,6 +727,10 @@ void listaRemedios() {
 
     // Informa que todos os medicamentos foram listados 
     UARTprintf("\nFIM DA LISTA!\n");
+
+    // Se menu configurado para ser persistente, volta para menu
+    if(MENU_PERSISTANT)
+        Menu();
 }
 
 /********************************************************************************
