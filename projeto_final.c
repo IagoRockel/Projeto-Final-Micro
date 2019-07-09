@@ -57,6 +57,7 @@ int alarmeEstoqueOn = 0;
  *
  ********************************************************************************/
 void delay_ms(uint16_t atraso) {
+    
     if (atraso != 0)
         SysCtlDelay(atraso * (SysCtlClockGet() / (3 * 1000))); // Atraso em ms
 }
@@ -67,6 +68,7 @@ void delay_ms(uint16_t atraso) {
  *
  ********************************************************************************/
 void Interrupcao_Timer0() {
+    
     // Limpa a interrupção
     TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
 
@@ -125,6 +127,7 @@ void Interrupcao_Timer0() {
  *
  ********************************************************************************/
 void LCD_Setup() {
+    
     // Inicializa o LCD
     Lcd_Init();
 
@@ -232,6 +235,7 @@ void Configura_hora() {
  *
  ********************************************************************************/
 int askTime() {
+    
     // Retorna as horas e minutos informados convertidos para segundos
     return ask2number("Hora: ", 23) * HORA + 
             ask2number("Minuto: ", 59) * MINUTO;
@@ -557,10 +561,6 @@ void deletaRemedio() {
         return;
     }
 
-    /****************************************************************************
-     * Posição
-     ****************************************************************************/
-
     // Pergunta a posição para remover
     int pos = askPosition(REMOVER);
 
@@ -763,6 +763,7 @@ void Imprime_hora() {
  *
  ********************************************************************************/
 void setupTimer() {
+    
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
     IntMasterEnable();
     TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
@@ -805,6 +806,7 @@ void configureData() {
  *
  ********************************************************************************/
 void configureStepMotor() {
+    
     // Habilita o periférico D
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
 
@@ -821,6 +823,7 @@ void configureStepMotor() {
  *
  ********************************************************************************/
 void setMotorTo(int position) {
+    
     // Variável que indica quanto o motor deve girar
     int move;
 
