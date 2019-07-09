@@ -94,6 +94,7 @@ Quando o [Alarme de remédios] estiver ativo, o dispositivo gira até o remédio
 **Após** tomar os remédios, deve ser apertado _"SW2"_, que faz com que o dispositivo retorne para a posição inicial, ou, caso exista outro remédio para ser tomado no mesmo horário (ou em outro horário, mas que tenha dado o tempo até a sinalização de tomar o remédio anterior), vai para o remédio seguinte, até não haver mais remédios a serem tomados.
 
 
+<!--- Configuração dos links --->
 [Inicialização]:USER_MANUAL.md#inicialização
 [1. Cadastrar remedio]:USER_MANUAL.md#1-cadastrar-remedio
 [2. Remover remedio]:USER_MANUAL.md#2-remover-remedio
